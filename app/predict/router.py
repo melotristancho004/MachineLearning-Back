@@ -23,4 +23,3 @@ def message(data: Message):
     prediccion = model.predict(texto_vector)[0]
 
     return {"message": message, "prediction": prediccion}
-x
