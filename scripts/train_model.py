@@ -13,7 +13,7 @@ from sklearn.metrics import (
     precision_recall_fscore_support,
 )
 from sklearn.model_selection import train_test_split
-from sklearn.naive_bayes import MultinomialNB
+from sklearn.linear_model import LogisticRegression
 
 
 def clean_text(text: str) -> str:
@@ -28,7 +28,7 @@ def clean_text(text: str) -> str:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Train emotion classifier (TF-IDF + MultinomialNB) and export artifacts."
+        description="Train emotion classifier (TF-IDF + LogisticRegression) and export artifacts."
     )
     parser.add_argument(
         "--dataset",
@@ -121,7 +121,7 @@ def main() -> None:
     X_train_vec = vectorizer.fit_transform(X_train)
     X_test_vec = vectorizer.transform(X_test)
 
-    model = MultinomialNB()
+    model = LogisticRegression(max_iter=100, solver="lbfgs")
     model.fit(X_train_vec, y_train)
 
     y_pred = model.predict(X_test_vec)
