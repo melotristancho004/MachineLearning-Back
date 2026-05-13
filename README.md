@@ -42,7 +42,7 @@ El proyecto incluye un script para entrenar el modelo y guardar los artefactos e
 Usando el dataset por defecto:
 
 ```bash
-python scripts/train_model.py --dataset datos/med_dataset_v2.csv
+python scripts/train_model.py --dataset datos/med_dataset_v8.csv
 ```
 
 Con el archivo por lotes de Windows:
@@ -51,11 +51,21 @@ Con el archivo por lotes de Windows:
 train-model.bat
 ```
 
-Opcionalmente puedes usar otro dataset, por ejemplo `datos/med_dataset_v7.csv`:
+Opcionalmente puedes usar otro dataset, por ejemplo `datos/med_dataset_v8.csv`:
 
 ```bash
-python scripts/train_model.py --dataset datos/med_dataset_v7.csv --overwrite
+python scripts/train_model.py --dataset datos/med_dataset_v8.csv --overwrite
 ```
+
+## Validación
+
+Para comprobar que los artefactos del modelo existen y que el endpoint de predicción responde correctamente, ejecuta:
+
+```bash
+python scripts/validate_project.py
+```
+
+El script realiza una verificación mínima del flujo backend con mensajes de ejemplo.
 
 ## Ejecutar la API
 
