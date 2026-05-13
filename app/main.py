@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from .predict.router import routerModel
+from predict.router import routerModel
 
 app = FastAPI(
     title="Proyecto Machine Learning Back",
