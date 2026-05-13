@@ -1,5 +1,5 @@
 {
-  "dataset_path": "D:\\OneDrive\\Documentos\\Proyecto\\MachineLearning-Back\\datos\\med_dataset_v2.csv",
+  "dataset_path": "D:\\OneDrive\\Juan\\Archivos\\Estudio\\Uninpahu\\Semestres\\Noveno Semestre\\Machine Learning & Deep Learning\\Proyecto\\MachineLearning-Back\\datos\\med_dataset_v2.csv",
   "rows_used": 9893,
   "duplicates_removed": 3649,
   "train_rows": 7914,
@@ -128,5 +128,27 @@
       1.0,
       1.0
     ]
+  },
+  "dataset_checksum": "062aab11931e7818ed0877efa2cec390fe7c246dc35df310edad3220f21a6bab",
+  "training_signature": {
+    "dataset_checksum": "062aab11931e7818ed0877efa2cec390fe7c246dc35df310edad3220f21a6bab",
+    "script_checksum": "d9107066f0cc217ad3bc1ccf9a3f917ea52995d55aaae672a797e51dbc95e7ed",
+    "text_col": "text",
+    "label_col": "emotion",
+    "test_size": 0.2,
+    "random_state": 42,
+    "min_df": 2,
+    "max_features": 20000,
+    "ngram_max": 2,
+    "c": 2.0,
+    "class_weight": "balanced",
+    "cv_folds": 5,
+    "augment_data": false,
+    "augment_target_per_class": 1000
+  },
+  "augmentation": {
+    "enabled": false,
+    "target_per_class": 1000,
+    "rows_added": 0
   }
 }
