@@ -1,0 +1,132 @@
+{
+  "dataset_path": "D:\\OneDrive\\Documentos\\Proyecto\\MachineLearning-Back\\datos\\med_dataset_v2.csv",
+  "rows_used": 9893,
+  "duplicates_removed": 3649,
+  "train_rows": 7914,
+  "test_rows": 1979,
+  "test_size": 0.2,
+  "random_state": 42,
+  "tfidf": {
+    "ngram_range": [
+      1,
+      2
+    ],
+    "min_df": 2,
+    "max_df": 0.95,
+    "max_features": 20000
+  },
+  "model": {
+    "type": "LogisticRegression",
+    "C": 2.0,
+    "solver": "lbfgs",
+    "class_weight": "balanced",
+    "max_iter": 1000
+  },
+  "labels": [
+    "enojo",
+    "feliz",
+    "miedo",
+    "triste"
+  ],
+  "label_distribution_total": {
+    "enojo": 2736,
+    "feliz": 2530,
+    "triste": 2349,
+    "miedo": 2278
+  },
+  "label_distribution_train": {
+    "enojo": 2189,
+    "feliz": 2024,
+    "triste": 1879,
+    "miedo": 1822
+  },
+  "label_distribution_test": {
+    "enojo": 547,
+    "feliz": 506,
+    "triste": 470,
+    "miedo": 456
+  },
+  "train_test_text_overlap_count": 0,
+  "accuracy": 0.9995,
+  "precision_weighted": 0.9995,
+  "recall_weighted": 0.9995,
+  "f1_weighted": 0.9995,
+  "classification_report": {
+    "enojo": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 547.0
+    },
+    "feliz": {
+      "precision": 0.9980276134122288,
+      "recall": 1.0,
+      "f1-score": 0.9990128331688055,
+      "support": 506.0
+    },
+    "miedo": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 456.0
+    },
+    "triste": {
+      "precision": 1.0,
+      "recall": 0.997872340425532,
+      "f1-score": 0.9989350372736954,
+      "support": 470.0
+    },
+    "accuracy": 0.9994946942900454,
+    "macro avg": {
+      "precision": 0.9995069033530573,
+      "recall": 0.999468085106383,
+      "f1-score": 0.9994869676106253,
+      "support": 1979.0
+    },
+    "weighted avg": {
+      "precision": 0.9994956909482505,
+      "recall": 0.9994946942900454,
+      "f1-score": 0.9994946746346905,
+      "support": 1979.0
+    }
+  },
+  "confusion_matrix": [
+    [
+      547,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      506,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      456,
+      0
+    ],
+    [
+      0,
+      1,
+      0,
+      469
+    ]
+  ],
+  "cross_validation": {
+    "folds": 5,
+    "scoring": "f1_weighted",
+    "mean": 0.9999,
+    "std": 0.0003,
+    "scores": [
+      1.0,
+      0.9994,
+      1.0,
+      1.0,
+      1.0
+    ]
+  }
+}
