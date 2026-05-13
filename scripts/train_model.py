@@ -3,6 +3,7 @@ import json
 import pickle
 import re
 import hashlib
+import random
 from pathlib import Path
 
 try:
@@ -32,6 +33,117 @@ def clean_text(text: str) -> str:
     text = text.lower().strip()
     text = re.sub(r"\s+", " ", text)
     return text
+
+
+def augment_dataset(
+    df: pd.DataFrame,
+    text_col: str,
+    label_col: str,
+    random_state: int,
+    target_per_class: int,
+) -> tuple[pd.DataFrame, int]:
+    """Generate lightweight synthetic samples to help balance the label distribution."""
+    if target_per_class < 1:
+        return df, 0
+
+    rng = random.Random(random_state)
+    existing_texts = set(df[text_col].astype(str).tolist())
+    label_counts = df[label_col].astype(str).value_counts().to_dict()
+
+    templates = {
+        "feliz": [
+            "estoy re contento con todo",
+            "hoy fue un dia increible de verdad",
+            "me salio todo bien y no me lo esperaba",
+            "hoy me senti muy bien conmigo mismo",
+            "estoy muy emocionado con lo que viene",
+            "me siento muy agradecido con la vida hoy",
+            "por fin me respondieron que si",
+            "hoy hice algo que me daba mucho miedo y salio bien",
+        ],
+        "triste": [
+            "siento que no soy suficiente",
+            "me comparo mucho con los demas y me hace mal",
+            "siento que todos avanzan menos yo",
+            "me siento muy perdido con mi vida",
+            "ya no tengo energia para nada de lo que antes me gustaba",
+            "estoy cansado de aparentar que todo esta bien",
+            "siento que cargo con demasiado para mi edad",
+            "me siento solo aunque este rodeado de gente",
+        ],
+        "enojo": [
+            "me tiene muy cansado esa actitud",
+            "no entiendo como la gente puede ser asi",
+            "me tiene harto que siempre pase lo mismo",
+            "me saca de quicio que no cambien nada",
+            "estoy muy frustrado con todo esto",
+            "me tienen muy molesto con tanta falta de respeto",
+            "me bloquearon sin darme ninguna explicacion",
+            "me critican sin conocer mi situacion",
+        ],
+        "miedo": [
+            "no se que quiero hacer con mi vida",
+            "tengo miedo de equivocarme y arrepentirme despues",
+            "me paraliza no saber cual es el camino correcto",
+            "tengo ansiedad de pensar en el futuro",
+            "me angustia no tener todo claro a mi edad",
+            "me da miedo que todo salga mal",
+            "me preocupa mucho el futuro economico",
+            "me da ansiedad publicar algo y que lo juzguen",
+        ],
+    }
+
+    prefixes = [
+        "",
+        "hoy ",
+        "la verdad ",
+        "es que ",
+        "ultimamente ",
+        "en serio ",
+        "bro ",
+        "men ",
+    ]
+    suffixes = [
+        "",
+        " de verdad",
+        " y ya",
+        " y no se que hacer",
+        " y me afecta",
+        " y nadie lo entiende",
+        " y me tiene pensando mucho",
+    ]
+
+    generated_rows = []
+    generated_per_label = {label: 0 for label in templates}
+
+    for label, templates_for_label in templates.items():
+        if label not in label_counts:
+            continue
+
+        needed = max(0, target_per_class - int(label_counts[label]))
+        attempts = 0
+        max_attempts = max(needed * 20, 50)
+
+        while generated_per_label[label] < needed and attempts < max_attempts:
+            attempts += 1
+            candidate = (
+                rng.choice(prefixes)
+                + rng.choice(templates_for_label)
+                + rng.choice(suffixes)
+            ).strip()
+            candidate = clean_text(candidate)
+            if not candidate or candidate in existing_texts:
+                continue
+
+            existing_texts.add(candidate)
+            generated_rows.append({text_col: candidate, label_col: label})
+            generated_per_label[label] += 1
+
+    if not generated_rows:
+        return df, 0
+
+    augmented_df = pd.concat([df, pd.DataFrame(generated_rows)], ignore_index=True)
+    return augmented_df, int(len(generated_rows))
 
 
 def parse_args() -> argparse.Namespace:
@@ -107,6 +219,17 @@ def parse_args() -> argparse.Namespace:
         help="Force retrain and overwrite existing artifacts.",
     )
     parser.add_argument(
+        "--augment-data",
+        action="store_true",
+        help="Generate lightweight synthetic samples before splitting.",
+    )
+    parser.add_argument(
+        "--augment-target-per-class",
+        type=int,
+        default=1000,
+        help="Minimum samples per class after augmentation when --augment-data is set (default: 1000).",
+    )
+    parser.add_argument(
         "--model-out",
         default="app/modelColab/modelo.pkl",
         help="Output path for trained model.",
@@ -137,6 +260,14 @@ def resolve_path(path_str: str, base_dir: Path) -> Path:
     return p if p.is_absolute() else (base_dir / p)
 
 
+def sha256_of_file(p: Path) -> str:
+    h = hashlib.sha256()
+    with p.open("rb") as fh:
+        for chunk in iter(lambda: fh.read(8192), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
 def main() -> None:
     args = parse_args()
 
@@ -150,6 +281,8 @@ def main() -> None:
         raise ValueError("--max-features should be >= 100.")
     if args.c <= 0:
         raise ValueError("--c must be > 0.")
+    if args.augment_target_per_class < 1:
+        raise ValueError("--augment-target-per-class must be >= 1.")
 
     # scripts/.. => MachineLearning-Back
     project_root = Path(__file__).resolve().parents[1]
@@ -157,6 +290,40 @@ def main() -> None:
     dataset_path = resolve_path(args.dataset, project_root)
     if not dataset_path.exists():
         raise FileNotFoundError(f"Dataset not found: {dataset_path}")
+
+    model_out = resolve_path(args.model_out, project_root)
+    vectorizer_out = resolve_path(args.vectorizer_out, project_root)
+    metrics_out = resolve_path(args.metrics_out, project_root)
+
+    dataset_checksum = sha256_of_file(dataset_path)
+    script_checksum = sha256_of_file(Path(__file__).resolve())
+    training_signature = {
+        "dataset_checksum": dataset_checksum,
+        "script_checksum": script_checksum,
+        "text_col": args.text_col,
+        "label_col": args.label_col,
+        "test_size": args.test_size,
+        "random_state": args.random_state,
+        "min_df": args.min_df,
+        "max_features": args.max_features,
+        "ngram_max": args.ngram_max,
+        "c": args.c,
+        "class_weight": args.class_weight,
+        "cv_folds": args.cv_folds,
+        "augment_data": args.augment_data,
+        "augment_target_per_class": args.augment_target_per_class,
+    }
+
+    if metrics_out.exists() and model_out.exists() and vectorizer_out.exists() and not args.overwrite:
+        try:
+            with metrics_out.open("r", encoding="utf-8") as f:
+                prev = json.load(f)
+            if prev.get("training_signature") == training_signature:
+                print("Artefactos existentes y configuración sin cambios. Salvo por --overwrite, no se reentrena.")
+                return
+        except Exception:
+            # si no se puede leer metrics, continuar y reentrenar
+            pass
 
     df = pd.read_csv(dataset_path)
     validate_columns(df, args.text_col, args.label_col)
@@ -167,6 +334,20 @@ def main() -> None:
     df = df[[args.text_col, args.label_col]].dropna().copy()
     df[args.text_col] = df[args.text_col].astype(str).map(clean_text)
     df = df[df[args.text_col].str.len() > 0]
+
+    augmented_rows_added = 0
+    if args.augment_data:
+        df, augmented_rows_added = augment_dataset(
+            df=df,
+            text_col=args.text_col,
+            label_col=args.label_col,
+            random_state=args.random_state,
+            target_per_class=args.augment_target_per_class,
+        )
+        df = df.drop_duplicates(subset=[args.text_col, args.label_col]).reset_index(drop=True)
+        df = df[[args.text_col, args.label_col]].dropna().copy()
+        df[args.text_col] = df[args.text_col].astype(str).map(clean_text)
+        df = df[df[args.text_col].str.len() > 0]
 
     if df.empty:
         raise ValueError("Dataset is empty after cleaning.")
@@ -323,42 +504,17 @@ def main() -> None:
     if cv_results is not None:
         metrics["cross_validation"] = cv_results
 
-    model_out = resolve_path(args.model_out, project_root)
-    vectorizer_out = resolve_path(args.vectorizer_out, project_root)
-    metrics_out = resolve_path(args.metrics_out, project_root)
-
-    # compute dataset checksum
-    def sha256_of_file(p: Path) -> str:
-        h = hashlib.sha256()
-        with p.open("rb") as fh:
-            for chunk in iter(lambda: fh.read(8192), b""):
-                h.update(chunk)
-        return h.hexdigest()
-
-    dataset_checksum = sha256_of_file(dataset_path)
-
-    # If metrics exist, compare checksum and skip if same (unless --overwrite)
-    if metrics_out.exists() and model_out.exists() and vectorizer_out.exists() and not args.overwrite:
-        try:
-            with metrics_out.open("r", encoding="utf-8") as f:
-                prev = json.load(f)
-            if prev.get("dataset_checksum") == dataset_checksum:
-                print("Artefactos existentes y dataset sin cambios. Salvo por --overwrite, no se reentrena.")
-                return
-        except Exception:
-            # si no se puede leer metrics, continuar y reentrenar
-            pass
-
-    # ...existing training code...
-
-    # al guardar métricas, incluir checksum
-    metrics["dataset_checksum"] = dataset_checksum
-    with metrics_out.open("w", encoding="utf-8") as f:
-        json.dump(metrics, f, ensure_ascii=False, indent=2)
-
     model_out.parent.mkdir(parents=True, exist_ok=True)
     vectorizer_out.parent.mkdir(parents=True, exist_ok=True)
     metrics_out.parent.mkdir(parents=True, exist_ok=True)
+
+    metrics["dataset_checksum"] = dataset_checksum
+    metrics["training_signature"] = training_signature
+    metrics["augmentation"] = {
+        "enabled": bool(args.augment_data),
+        "target_per_class": int(args.augment_target_per_class),
+        "rows_added": int(augmented_rows_added),
+    }
 
     with model_out.open("wb") as f:
         pickle.dump(model, f)

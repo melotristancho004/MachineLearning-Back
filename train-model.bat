@@ -4,7 +4,7 @@ setlocal
 set "ROOT=%~dp0"
 set "PYTHON=%ROOT%.venv\Scripts\python.exe"
 set "SCRIPT=%ROOT%scripts\train_model.py"
-set "DEFAULT_DATASET=%ROOT%datos\med_dataset_v2.csv"
+set "DEFAULT_DATASET=%ROOT%datos\med_dataset_v7.csv"
 
 if not exist "%PYTHON%" (
   echo [ERROR] No existe: "%PYTHON%"
