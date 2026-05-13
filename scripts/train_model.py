@@ -24,9 +24,26 @@ from sklearn.model_selection import StratifiedKFold, cross_val_score, train_test
 from sklearn.pipeline import Pipeline
 from sklearn.linear_model import LogisticRegression
 
+"""Script para entrenar el clasificador de emociones.
+
+Contiene la preparación de datos, entrenamiento del vectorizador TF-IDF y
+entrenamiento del modelo de Regresión Logística. Exporta los artefactos
+(`modelo.pkl`, `vectorizer.pkl`) y un reporte de métricas.
+"""
+
 
 def clean_text(text: str) -> str:
-    """Basic text normalization for spanish short messages."""
+    """Normaliza un texto corto.
+
+    Operaciones realizadas:
+    - verificar que la entrada sea una cadena
+    - convertir a minúsculas
+    - eliminar espacios al inicio y final
+    - colapsar múltiples espacios en uno solo
+
+    Mantener esta función simple facilita extenderla en caso de necesitar
+    pasos adicionales (por ejemplo, eliminar puntuación o normalizar acentos).
+    """
     if not isinstance(text, str):
         return ""
 
@@ -42,7 +59,12 @@ def augment_dataset(
     random_state: int,
     target_per_class: int,
 ) -> tuple[pd.DataFrame, int]:
-    """Generate lightweight synthetic samples to help balance the label distribution."""
+    """Genera muestras sintéticas ligeras para ayudar a balancear la distribución de etiquetas.
+
+    Usa plantillas y variaciones (prefijos/sufijos) para crear ejemplos sintéticos
+    por etiqueta hasta alcanzar `target_per_class` muestras por clase.
+    """
+    # Si target_per_class < 1 no se solicita aumento; devolver el df original
     if target_per_class < 1:
         return df, 0
 
@@ -113,6 +135,7 @@ def augment_dataset(
         " y me tiene pensando mucho",
     ]
 
+    # Coleccionar filas sintéticas generadas y contar cuántas por etiqueta
     generated_rows = []
     generated_per_label = {label: 0 for label in templates}
 
@@ -140,6 +163,8 @@ def augment_dataset(
             generated_per_label[label] += 1
 
     if not generated_rows:
+        # No se generaron filas nuevas (p.ej. ya había suficientes datos),
+        # devolver el dataframe original y contar 0 filas añadidas.
         return df, 0
 
     augmented_df = pd.concat([df, pd.DataFrame(generated_rows)], ignore_index=True)
@@ -148,7 +173,7 @@ def augment_dataset(
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Train emotion classifier (TF-IDF + LogisticRegression) and export artifacts."
+        description="Entrenar clasificador de emociones (TF-IDF + Regresión Logística) y exportar artefactos."
     )
     parser.add_argument(
         "--dataset",
@@ -244,6 +269,7 @@ def parse_args() -> argparse.Namespace:
         default="app/modelColab/training_metrics.json",
         help="Output path for metrics report.",
     )
+    # Keep CLI parsing isolated for easier unit testing and invocation
     return parser.parse_args()
 
 
@@ -269,6 +295,7 @@ def sha256_of_file(p: Path) -> str:
 
 
 def main() -> None:
+    # Parse CLI arguments and validate them below
     args = parse_args()
 
     if not 0.0 < args.test_size < 1.0:
