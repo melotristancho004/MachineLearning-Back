@@ -4,7 +4,13 @@ import pickle
 import re
 from pathlib import Path
 
-import pandas as pd
+try:
+    import pandas as pd
+except Exception as e:
+    raise ImportError(
+        "pandas is required to run this script but could not be imported; "
+        "install it with 'pip install pandas' (or 'conda install pandas')"
+    ) from e
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics import (
     accuracy_score,
@@ -37,13 +43,13 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--text-col",
-        default="texto",
-        help="Name of text column in dataset (default: texto).",
+        default="text",
+        help="Name of text column in dataset (default: text).",
     )
     parser.add_argument(
         "--label-col",
-        default="emocion",
-        help="Name of label column in dataset (default: emocion).",
+        default="emotion",
+        help="Name of label column in dataset (default: emotion).",
     )
     parser.add_argument(
         "--test-size",
@@ -83,10 +89,18 @@ def validate_columns(df: pd.DataFrame, text_col: str, label_col: str) -> None:
         )
 
 
+def resolve_path(path_str: str, base_dir: Path) -> Path:
+    p = Path(path_str)
+    return p if p.is_absolute() else (base_dir / p)
+
+
 def main() -> None:
     args = parse_args()
 
-    dataset_path = Path(args.dataset)
+    # scripts/.. => MachineLearning-Back
+    project_root = Path(__file__).resolve().parents[1]
+
+    dataset_path = resolve_path(args.dataset, project_root)
     if not dataset_path.exists():
         raise FileNotFoundError(f"Dataset not found: {dataset_path}")
 
@@ -157,9 +171,9 @@ def main() -> None:
         "confusion_matrix": cm.tolist(),
     }
 
-    model_out = Path(args.model_out)
-    vectorizer_out = Path(args.vectorizer_out)
-    metrics_out = Path(args.metrics_out)
+    model_out = resolve_path(args.model_out, project_root)
+    vectorizer_out = resolve_path(args.vectorizer_out, project_root)
+    metrics_out = resolve_path(args.metrics_out, project_root)
 
     model_out.parent.mkdir(parents=True, exist_ok=True)
     vectorizer_out.parent.mkdir(parents=True, exist_ok=True)
