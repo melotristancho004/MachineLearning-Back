@@ -2,7 +2,8 @@
 setlocal
 
 set "ROOT=%~dp0"
-set "PYTHON=%ROOT%.venv\Scripts\python.exe"
+set "PROJECT_ROOT=%ROOT%.."
+set "PYTHON=%PROJECT_ROOT%\.venv\Scripts\python.exe"
 set "SCRIPT=%ROOT%scripts\train_model.py"
 set "DEFAULT_DATASET=%ROOT%datos\med_dataset_v8.csv"
 

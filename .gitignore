@@ -3,3 +3,8 @@ venv/
 .venv/
 
 __pycache__/
+
+app/modelColab/encoder_med/
+app/__pycache__/
+scripts/__pycache__/
+*.pyc

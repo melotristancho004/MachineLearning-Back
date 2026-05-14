@@ -1,154 +1,101 @@
 {
   "dataset_path": "D:\\OneDrive\\Juan\\Archivos\\Estudio\\Uninpahu\\Semestres\\Noveno Semestre\\Machine Learning & Deep Learning\\Proyecto\\MachineLearning-Back\\datos\\med_dataset_v8.csv",
   "rows_used": 35105,
-  "duplicates_removed": 0,
   "train_rows": 28084,
   "test_rows": 7021,
   "test_size": 0.2,
   "random_state": 42,
-  "tfidf": {
-    "ngram_range": [
-      1,
-      2
-    ],
-    "min_df": 2,
-    "max_df": 0.95,
-    "max_features": 20000
-  },
-  "model": {
-    "type": "LogisticRegression",
-    "C": 2.0,
-    "solver": "lbfgs",
-    "class_weight": "balanced",
-    "max_iter": 1000
-  },
+  "accuracy": 0.9613,
   "labels": [
     "enojo",
     "feliz",
     "miedo",
     "triste"
   ],
-  "label_distribution_total": {
-    "enojo": 8945,
-    "feliz": 8902,
-    "triste": 8684,
-    "miedo": 8574
-  },
-  "label_distribution_train": {
-    "enojo": 7156,
-    "feliz": 7122,
-    "triste": 6947,
-    "miedo": 6859
-  },
-  "label_distribution_test": {
-    "enojo": 1789,
-    "feliz": 1780,
-    "triste": 1737,
-    "miedo": 1715
-  },
-  "train_test_text_overlap_count": 0,
-  "accuracy": 0.999,
-  "precision_weighted": 0.999,
-  "recall_weighted": 0.999,
-  "f1_weighted": 0.999,
   "classification_report": {
     "enojo": {
-      "precision": 0.9972129319955407,
-      "recall": 1.0,
-      "f1-score": 0.9986045213508233,
+      "precision": 0.9536312849162011,
+      "recall": 0.9541643376187814,
+      "f1-score": 0.9538977367979883,
       "support": 1789.0
     },
     "feliz": {
-      "precision": 1.0,
-      "recall": 0.999438202247191,
-      "f1-score": 0.9997190221972464,
+      "precision": 0.9707865168539326,
+      "recall": 0.9707865168539326,
+      "f1-score": 0.9707865168539326,
       "support": 1780.0
     },
     "miedo": {
-      "precision": 0.9994165694282381,
-      "recall": 0.9988338192419826,
-      "f1-score": 0.9991251093613298,
+      "precision": 0.977725674091442,
+      "recall": 0.972594752186589,
+      "f1-score": 0.9751534638994446,
       "support": 1715.0
     },
     "triste": {
-      "precision": 0.9994232987312572,
-      "recall": 0.9976971790443293,
-      "f1-score": 0.9985594929415154,
+      "precision": 0.9432664756446991,
+      "recall": 0.9476108232584917,
+      "f1-score": 0.945433658816772,
       "support": 1737.0
     },
-    "accuracy": 0.9990029910269193,
+    "accuracy": 0.9612590799031477,
     "macro avg": {
-      "precision": 0.999013200038759,
-      "recall": 0.9989923001333757,
-      "f1-score": 0.9990020364627288,
+      "precision": 0.9613524878765687,
+      "recall": 0.9612891074794486,
+      "f1-score": 0.9613178440920345,
       "support": 7021.0
     },
     "weighted avg": {
-      "precision": 0.9990046463189922,
-      "recall": 0.9990029910269193,
-      "f1-score": 0.9990030978495676,
+      "precision": 0.9613017758120993,
+      "recall": 0.9612590799031477,
+      "f1-score": 0.9612775255781059,
       "support": 7021.0
     }
   },
   "confusion_matrix": [
     [
-      1789,
-      0,
-      0,
-      0
+      1707,
+      15,
+      24,
+      43
     ],
     [
-      1,
-      1779,
-      0,
-      0
+      16,
+      1728,
+      4,
+      32
     ],
     [
-      1,
-      0,
-      1713,
-      1
+      21,
+      2,
+      1668,
+      24
     ],
     [
-      3,
-      0,
-      1,
-      1733
+      46,
+      35,
+      10,
+      1646
     ]
   ],
-  "cross_validation": {
-    "folds": 5,
-    "scoring": "f1_weighted",
-    "mean": 0.9985,
-    "std": 0.0005,
-    "scores": [
-      0.9993,
-      0.9988,
-      0.9982,
-      0.9984,
-      0.9977
-    ]
+  "embedding": {
+    "encoder_name": "paraphrase-multilingual-MiniLM-L12-v2",
+    "encoder_out": "D:\\OneDrive\\Juan\\Archivos\\Estudio\\Uninpahu\\Semestres\\Noveno Semestre\\Machine Learning & Deep Learning\\Proyecto\\MachineLearning-Back\\app\\modelColab\\encoder_med"
   },
-  "dataset_checksum": "dc0ef1360ab70f0bc8a1c7ba36d35aba640a20786e922811ee66840b88c7e0d8",
+  "model": {
+    "type": "LogisticRegression",
+    "C": 2.0,
+    "solver": "lbfgs",
+    "multi_class": "multinomial",
+    "max_iter": 1000
+  },
   "training_signature": {
     "dataset_checksum": "dc0ef1360ab70f0bc8a1c7ba36d35aba640a20786e922811ee66840b88c7e0d8",
-    "script_checksum": "277f6333549f64aac67f8258ae8e2c9588cde41bdef6411c38dbc85d305db103",
+    "script_checksum": "7d954a8a71965365d9efed3bd97c39b954d43b5c1b82a87891e915c393a25523",
+    "encoder_name": "paraphrase-multilingual-MiniLM-L12-v2",
     "text_col": "text",
     "label_col": "emotion",
     "test_size": 0.2,
     "random_state": 42,
-    "min_df": 2,
-    "max_features": 20000,
-    "ngram_max": 2,
-    "c": 2.0,
-    "class_weight": "balanced",
-    "cv_folds": 5,
-    "augment_data": false,
-    "augment_target_per_class": 1000
-  },
-  "augmentation": {
-    "enabled": false,
-    "target_per_class": 1000,
-    "rows_added": 0
+    "c": 2.0
   }
 }

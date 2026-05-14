@@ -77,6 +77,12 @@ uvicorn app.main:app --reload
 
 La API quedará disponible en `http://127.0.0.1:8000`.
 
+Si aparece `WinError 10013`, normalmente significa que ya hay otro proceso usando el puerto `8000`. En ese caso, cierra el `uvicorn` anterior o usa otro puerto:
+
+```bash
+uvicorn app.main:app --reload --port 8001
+```
+
 Documentación automática:
 
 - Swagger: `http://127.0.0.1:8000/docs`
