@@ -5,7 +5,7 @@ Este script sigue el flujo del notebook de embeddings:
 - divide train/test
 - genera embeddings con Sentence-Transformers
 - entrena Logistic Regression multinomial
-- guarda `modelo_v1.pkl`, `encoder_med/` y `training_metrics.json`
+ - guarda `modelo_v2.pkl`, `encoder_med/` y `training_metrics.json`
 """
 
 from __future__ import annotations
@@ -64,8 +64,14 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--random-state", type=int, default=42, help="Semilla aleatoria.")
     parser.add_argument("--c", type=float, default=2.0, help="Fuerza de regularización.")
     parser.add_argument(
+        "--decision-threshold",
+        type=float,
+        default=0.55,
+        help="Umbral mínimo de confianza para marcar una predicción como segura.",
+    )
+    parser.add_argument(
         "--model-out",
-        default="app/modelColab/modelo_v1.pkl",
+        default="app/modelColab/modelo_v2.pkl",
         help="Archivo de salida para el modelo.",
     )
     parser.add_argument(
@@ -89,6 +95,8 @@ def main() -> None:
         raise ValueError("--test-size must be a float in the interval (0, 1).")
     if args.c <= 0:
         raise ValueError("--c must be > 0.")
+    if not 0.0 < args.decision_threshold < 1.0:
+        raise ValueError("--decision-threshold must be a float in the interval (0, 1).")
 
     project_root = Path(__file__).resolve().parents[1]
     dataset_path = resolve_path(args.dataset, project_root)
@@ -163,6 +171,11 @@ def main() -> None:
     labels = list(model.classes_)
     cm = confusion_matrix(y_test, y_pred, labels=labels)
 
+    test_probabilities = model.predict_proba(X_test_emb)
+    top_confidences = test_probabilities.max(axis=1)
+    safe_predictions = int((top_confidences >= args.decision_threshold).sum())
+    unsafe_predictions = int(len(top_confidences) - safe_predictions)
+
     model_out.parent.mkdir(parents=True, exist_ok=True)
     metrics_out.parent.mkdir(parents=True, exist_ok=True)
 
@@ -181,13 +194,17 @@ def main() -> None:
             shutil.rmtree(temp_encoder_out, ignore_errors=True)
 
     metrics = {
-        "dataset_path": str(dataset_path),
+        # Save paths relative to project root when possible to avoid leaking absolute locations
+        "dataset_path": (dataset_path.relative_to(project_root).as_posix() if dataset_path.is_absolute() else Path(str(dataset_path)).as_posix()),
         "rows_used": int(len(df)),
         "train_rows": int(len(X_train)),
         "test_rows": int(len(X_test)),
         "test_size": args.test_size,
         "random_state": args.random_state,
         "accuracy": round(float(acc), 4),
+        "decision_threshold": float(args.decision_threshold),
+        "safe_predictions": safe_predictions,
+        "unsafe_predictions": unsafe_predictions,
         "labels": labels,
         "classification_report": classification_report(
             y_test,
@@ -199,14 +216,20 @@ def main() -> None:
         "confusion_matrix": cm.tolist(),
         "embedding": {
             "encoder_name": args.encoder_name,
-            "encoder_out": str(encoder_out),
+            "encoder_out": (encoder_out.relative_to(project_root).as_posix() if encoder_out.is_absolute() else Path(str(encoder_out)).as_posix()),
         },
+        "model_out": (model_out.relative_to(project_root).as_posix() if model_out.is_absolute() else Path(str(model_out)).as_posix()),
         "model": {
             "type": "LogisticRegression",
             "C": float(args.c),
             "solver": "lbfgs",
             "multi_class": "multinomial",
             "max_iter": 1000,
+        },
+        "prediction_policy": {
+            "decision_threshold": float(args.decision_threshold),
+            "definition": "A prediction is considered safe when the highest class probability is greater than or equal to the threshold.",
+            "source": "MED_v2_embeddings.ipynb",
         },
         "training_signature": training_signature,
     }

@@ -1,11 +1,14 @@
 {
-  "dataset_path": "D:\\OneDrive\\Juan\\Archivos\\Estudio\\Uninpahu\\Semestres\\Noveno Semestre\\Machine Learning & Deep Learning\\Proyecto\\MachineLearning-Back\\datos\\med_dataset_v8.csv",
+  "dataset_path": "datos/med_dataset_v8.csv",
   "rows_used": 35105,
   "train_rows": 28084,
   "test_rows": 7021,
   "test_size": 0.2,
   "random_state": 42,
   "accuracy": 0.9613,
+  "decision_threshold": 0.55,
+  "safe_predictions": 6792,
+  "unsafe_predictions": 229,
   "labels": [
     "enojo",
     "feliz",
@@ -79,8 +82,9 @@
   ],
   "embedding": {
     "encoder_name": "paraphrase-multilingual-MiniLM-L12-v2",
-    "encoder_out": "D:\\OneDrive\\Juan\\Archivos\\Estudio\\Uninpahu\\Semestres\\Noveno Semestre\\Machine Learning & Deep Learning\\Proyecto\\MachineLearning-Back\\app\\modelColab\\encoder_med"
+    "encoder_out": "app/modelColab/encoder_med"
   },
+  "model_out": "app/modelColab/modelo_v2.pkl",
   "model": {
     "type": "LogisticRegression",
     "C": 2.0,
@@ -88,9 +92,14 @@
     "multi_class": "multinomial",
     "max_iter": 1000
   },
+  "prediction_policy": {
+    "decision_threshold": 0.55,
+    "definition": "A prediction is considered safe when the highest class probability is greater than or equal to the threshold.",
+    "source": "MED_v2_embeddings.ipynb"
+  },
   "training_signature": {
     "dataset_checksum": "dc0ef1360ab70f0bc8a1c7ba36d35aba640a20786e922811ee66840b88c7e0d8",
-    "script_checksum": "7d954a8a71965365d9efed3bd97c39b954d43b5c1b82a87891e915c393a25523",
+    "script_checksum": "3f6e7fb92f7c61faf5420fdbe0187705d3c8a79bc5cbc55b934dcb0c4a874fe2",
     "encoder_name": "paraphrase-multilingual-MiniLM-L12-v2",
     "text_col": "text",
     "label_col": "emotion",
