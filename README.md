@@ -53,9 +53,32 @@ python scripts/train_model.py --dataset datos/med_dataset_v8.csv
 train-model.bat
 ```
 
+- Reentrenar con correcciones (Windows):
+
+```powershell
+retrain-from-correcciones.bat
+```
+
+### Cuándo usar cada uno
+
+- `train-model.bat`: cuando quieras reentrenar desde el dataset base sin correcciones manuales.
+- `retrain-from-correcciones.bat`: cuando ya tengas `datos/correcciones.csv` y quieras incorporar ejemplos corregidos.
+
 - Parámetros útiles:
   - `--decision-threshold FLOAT` (ej. `0.55`) — umbral para marcar predicciones como "safe".
   - `--overwrite` — sobrescribir artefactos existentes.
+
+### Reentrenar con correcciones manuales
+
+Si quieres corregir errores del modelo con ejemplos nuevos, usa:
+
+```bash
+python scripts/retrain_from_correcciones.py --corrections datos/correcciones.csv --keep-merged --overwrite
+```
+
+- `datos/correcciones.csv` debe tener las columnas `text` y `emotion`.
+- La plantilla de referencia está en `datos/correcciones.csv.example`.
+- El script amplifica las correcciones, combina el dataset base y vuelve a ejecutar `train_model.py`.
 
 ---
 
