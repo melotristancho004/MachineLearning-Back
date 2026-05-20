@@ -28,8 +28,8 @@ class Message(BaseModel):
 BASE_DIR = Path(__file__).resolve().parent.parent
 MODEL_DIR = BASE_DIR / "modelColab"
 
-MODEL_PATH = MODEL_DIR / "modelo_v2.pkl"
-LEGACY_MODEL_PATH = MODEL_DIR / "modelo_v1.pkl"
+MODEL_PATH = MODEL_DIR / "modelo_v3.pkl"
+LEGACY_MODEL_PATH = MODEL_DIR / "modelo_v2.pkl"
 ENCODER_PATH = MODEL_DIR / "encoder_med"
 METRICS_PATH = MODEL_DIR / "training_metrics.json"
 
