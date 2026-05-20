@@ -84,7 +84,7 @@ python scripts/retrain_from_correcciones.py --corrections datos/correcciones.csv
 
 ## Artifacts (output)
 
-- `app/modelColab/modelo_v2.pkl` — modelo serializado (joblib)
+- `app/modelColab/modelo_v3.pkl` — modelo serializado (joblib)
 - `app/modelColab/encoder_med/` — encoder Sentence-Transformers
 - `app/modelColab/training_metrics.json` — métricas y metadatos (classification report, confusion matrix, training signature)
 
@@ -126,7 +126,7 @@ Campo `safe`: `confidence >= decision_threshold * 100` (el umbral se lee de `tra
 python scripts/validate_project.py
 ```
 
-- Si el endpoint devuelve `503 Model artifacts missing` -> ejecutar entrenamiento o colocar `modelo_v2.pkl` y `encoder_med/` en `app/modelColab/`.
+- Si el endpoint devuelve `503 Model artifacts missing` -> ejecutar entrenamiento o colocar `modelo_v3.pkl` y `encoder_med/` en `app/modelColab/`.
 
 ---
 

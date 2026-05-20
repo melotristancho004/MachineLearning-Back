@@ -1,7 +1,7 @@
 """Router para las rutas de predicción del modelo.
 
 Este módulo carga los artefactos alineados al notebook de embeddings:
-`modelo_v2.pkl` y `encoder_med/` dentro de `app/modelColab/`.
+`modelo_v3.pkl` y `encoder_med/` dentro de `app/modelColab/`.
 """
 
 from fastapi import APIRouter, HTTPException

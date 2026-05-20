@@ -5,7 +5,7 @@ Este script sigue el flujo del notebook de embeddings:
 - divide train/test
 - genera embeddings con Sentence-Transformers
 - entrena Logistic Regression multinomial
- - guarda `modelo_v2.pkl`, `encoder_med/` y `training_metrics.json`
+- guarda `modelo_v2.pkl`, `encoder_med/` y `training_metrics.json`
 """
 
 from __future__ import annotations
@@ -52,7 +52,9 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Entrenar clasificador de emociones con Sentence-Transformers + Logistic Regression.",
     )
-    parser.add_argument("--dataset", required=True, help="Ruta del CSV de entrenamiento.")
+    parser.add_argument(
+        "--dataset", required=True, help="Ruta del CSV de entrenamiento."
+    )
     parser.add_argument("--text-col", default="text", help="Columna de texto.")
     parser.add_argument("--label-col", default="emotion", help="Columna de etiqueta.")
     parser.add_argument(
@@ -60,9 +62,15 @@ def parse_args() -> argparse.Namespace:
         default="paraphrase-multilingual-MiniLM-L12-v2",
         help="Modelo de Sentence-Transformers a usar.",
     )
-    parser.add_argument("--test-size", type=float, default=0.2, help="Proporción del test.")
-    parser.add_argument("--random-state", type=int, default=42, help="Semilla aleatoria.")
-    parser.add_argument("--c", type=float, default=2.0, help="Fuerza de regularización.")
+    parser.add_argument(
+        "--test-size", type=float, default=0.2, help="Proporción del test."
+    )
+    parser.add_argument(
+        "--random-state", type=int, default=42, help="Semilla aleatoria."
+    )
+    parser.add_argument(
+        "--c", type=float, default=2.0, help="Fuerza de regularización."
+    )
     parser.add_argument(
         "--decision-threshold",
         type=float,
@@ -84,7 +92,9 @@ def parse_args() -> argparse.Namespace:
         default="app/modelColab/training_metrics.json",
         help="Archivo de métricas de salida.",
     )
-    parser.add_argument("--overwrite", action="store_true", help="Sobrescribir artefactos.")
+    parser.add_argument(
+        "--overwrite", action="store_true", help="Sobrescribir artefactos."
+    )
     return parser.parse_args()
 
 
@@ -118,12 +128,19 @@ def main() -> None:
         "c": args.c,
     }
 
-    if not args.overwrite and model_out.exists() and encoder_out.exists() and metrics_out.exists():
+    if (
+        not args.overwrite
+        and model_out.exists()
+        and encoder_out.exists()
+        and metrics_out.exists()
+    ):
         try:
             with metrics_out.open("r", encoding="utf-8") as fh:
                 previous = json.load(fh)
             if previous.get("training_signature") == training_signature:
-                print("Artefactos existentes y configuración sin cambios. No se reentrena.")
+                print(
+                    "Artefactos existentes y configuración sin cambios. No se reentrena."
+                )
                 return
         except Exception:
             pass
@@ -131,12 +148,16 @@ def main() -> None:
     df = pd.read_csv(dataset_path)
     missing = [col for col in (args.text_col, args.label_col) if col not in df.columns]
     if missing:
-        raise ValueError(f"Missing required columns: {missing}. Available columns: {list(df.columns)}")
+        raise ValueError(
+            f"Missing required columns: {missing}. Available columns: {list(df.columns)}"
+        )
 
     df = df[[args.text_col, args.label_col]].dropna().copy()
     df[args.text_col] = df[args.text_col].astype(str).apply(clean_text)
     df = df[df[args.text_col].str.len() > 0]
-    df = df.drop_duplicates(subset=[args.text_col, args.label_col]).reset_index(drop=True)
+    df = df.drop_duplicates(subset=[args.text_col, args.label_col]).reset_index(
+        drop=True
+    )
 
     X = df[args.text_col].tolist()
     y = df[args.label_col].astype(str).tolist()
@@ -195,7 +216,11 @@ def main() -> None:
 
     metrics = {
         # Save paths relative to project root when possible to avoid leaking absolute locations
-        "dataset_path": (dataset_path.relative_to(project_root).as_posix() if dataset_path.is_absolute() else Path(str(dataset_path)).as_posix()),
+        "dataset_path": (
+            dataset_path.relative_to(project_root).as_posix()
+            if dataset_path.is_absolute()
+            else Path(str(dataset_path)).as_posix()
+        ),
         "rows_used": int(len(df)),
         "train_rows": int(len(X_train)),
         "test_rows": int(len(X_test)),
@@ -216,9 +241,17 @@ def main() -> None:
         "confusion_matrix": cm.tolist(),
         "embedding": {
             "encoder_name": args.encoder_name,
-            "encoder_out": (encoder_out.relative_to(project_root).as_posix() if encoder_out.is_absolute() else Path(str(encoder_out)).as_posix()),
+            "encoder_out": (
+                encoder_out.relative_to(project_root).as_posix()
+                if encoder_out.is_absolute()
+                else Path(str(encoder_out)).as_posix()
+            ),
         },
-        "model_out": (model_out.relative_to(project_root).as_posix() if model_out.is_absolute() else Path(str(model_out)).as_posix()),
+        "model_out": (
+            model_out.relative_to(project_root).as_posix()
+            if model_out.is_absolute()
+            else Path(str(model_out)).as_posix()
+        ),
         "model": {
             "type": "LogisticRegression",
             "C": float(args.c),
