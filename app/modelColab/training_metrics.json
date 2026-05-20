@@ -7,8 +7,8 @@
   "random_state": 42,
   "accuracy": 0.9547,
   "decision_threshold": 0.55,
-  "safe_predictions": 6859,
-  "unsafe_predictions": 225,
+  "safe_predictions": 6857,
+  "unsafe_predictions": 227,
   "labels": [
     "enojo",
     "feliz",
@@ -17,67 +17,67 @@
   ],
   "classification_report": {
     "enojo": {
-      "precision": 0.9467618002195389,
-      "recall": 0.95146166574738,
-      "f1-score": 0.9491059147180193,
+      "precision": 0.9462129527991219,
+      "recall": 0.9509100937672367,
+      "f1-score": 0.9485557083906465,
       "support": 1813.0
     },
     "feliz": {
-      "precision": 0.9613445378151261,
-      "recall": 0.9602686066032456,
-      "f1-score": 0.9608062709966405,
+      "precision": 0.9613661814109743,
+      "recall": 0.9608282036933408,
+      "f1-score": 0.9610971172684019,
       "support": 1787.0
     },
     "miedo": {
-      "precision": 0.9676487579433853,
-      "recall": 0.9710144927536232,
-      "f1-score": 0.9693287037037037,
+      "precision": 0.9698725376593279,
+      "recall": 0.9704347826086956,
+      "f1-score": 0.9701535786728485,
       "support": 1725.0
     },
     "triste": {
-      "precision": 0.9432989690721649,
-      "recall": 0.9363274587833996,
-      "f1-score": 0.9398002853067047,
+      "precision": 0.9417142857142857,
+      "recall": 0.9368959636156907,
+      "f1-score": 0.939298945568538,
       "support": 1759.0
     },
     "accuracy": 0.954686617730096,
     "macro avg": {
-      "precision": 0.9547635162625538,
-      "recall": 0.954768055971912,
-      "f1-score": 0.9547602936812671,
+      "precision": 0.9547914893959274,
+      "recall": 0.9547672609212409,
+      "f1-score": 0.9547763374751087,
       "support": 7084.0
     },
     "weighted avg": {
-      "precision": 0.9546666892890928,
+      "precision": 0.9546797015302073,
       "recall": 0.954686617730096,
-      "f1-score": 0.9546711667699249,
+      "f1-score": 0.9546800982970918,
       "support": 7084.0
     }
   },
   "confusion_matrix": [
     [
-      1725,
-      24,
-      22,
-      42
+      1724,
+      23,
+      20,
+      46
     ],
     [
-      29,
-      1716,
+      28,
+      1717,
       8,
       34
     ],
     [
       18,
-      9,
-      1675,
-      23
+      11,
+      1674,
+      22
     ],
     [
-      50,
-      36,
-      26,
-      1647
+      52,
+      35,
+      24,
+      1648
     ]
   ],
   "embedding": {
@@ -98,8 +98,8 @@
     "source": "MED_v2_embeddings.ipynb"
   },
   "training_signature": {
-    "dataset_checksum": "27f3d149e12ed7d9a95acf83592794fa2bc71d774405e87b70598b56cfd4945b",
-    "script_checksum": "3f6e7fb92f7c61faf5420fdbe0187705d3c8a79bc5cbc55b934dcb0c4a874fe2",
+    "dataset_checksum": "95e863860217a618c5c36bee2cdff15b495ecaaf7301d2289377743a2a2e6aad",
+    "script_checksum": "11f2e2901fb109097eb6acdd1b50ad2c02c3f5243f763641c9f2f87788fd7ee7",
     "encoder_name": "paraphrase-multilingual-MiniLM-L12-v2",
     "text_col": "text",
     "label_col": "emotion",
