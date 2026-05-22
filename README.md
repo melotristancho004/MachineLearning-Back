@@ -1,117 +1,183 @@
 # MachineLearning-Back
 
-API en FastAPI para clasificar mensajes de texto con un modelo entrenado con TF-IDF + Logistic Regression.
+## Overview
 
-## Descripción
+API en FastAPI para clasificación de texto.
 
-Este backend expone un endpoint HTTP para recibir un texto y devolver una predicción. El modelo y el vectorizador se cargan desde `app/modelColab/`.
+- Encoder: Sentence-Transformers `paraphrase-multilingual-MiniLM-L12-v2`
+- Clasificador: `LogisticRegression` (multinomial)
 
-## Estructura
+---
 
-- `app/main.py`: punto de entrada de la API.
-- `app/predict/router.py`: router con el endpoint de predicción.
-- `scripts/train_model.py`: script de entrenamiento y exportación de artefactos.
-- `scripts/ver_parametros.py`: inspección de parámetros del modelo y vectorizador.
-- `datos/`: datasets usados para entrenamiento.
-- `app/modelColab/`: artefactos generados (`modelo.pkl`, `vectorizer.pkl`, `training_metrics.json`).
+## Quick Start
 
-## Requisitos
+1. Crear y activar entorno (Windows):
 
-- Python 3.10 o superior recomendado.
-- Dependencias listadas en `requirements.txt`.
-
-## Instalación
-
-Crear y activar un entorno virtual:
-
-```bash
+```powershell
 python -m venv .venv
-.venv\Scripts\activate
-```
-
-Instalar dependencias:
-
-```bash
+(Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned) ; .venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 ```
 
-## Entrenamiento del modelo
+2. Ejecutar la API:
 
-El proyecto incluye un script para entrenar el modelo y guardar los artefactos en `app/modelColab/`.
+```bash
+uvicorn app.main:app --reload
+# http://127.0.0.1:8000 — Swagger: /docs
+```
 
-Usando el dataset por defecto:
+---
+
+## Project structure (relevant)
+
+- `app/main.py` — FastAPI app
+- `app/predict/router.py` — `/model/message` endpoint, carga de artefactos y política de decisión
+- `app/modelColab/` — modelos y encoder guardados
+- `scripts/train_model.py` — script de entrenamiento y exportación
+- `train-model.bat` — helper para Windows
+- `datos/` — datasets (ej. `med_dataset_v8.csv`)
+
+---
+
+## Training (generate artifacts)
+
+- Entrenar con dataset por defecto:
 
 ```bash
 python scripts/train_model.py --dataset datos/med_dataset_v8.csv
 ```
 
-Con el archivo por lotes de Windows:
+- Windows (batch):
 
-```bash
+```powershell
 train-model.bat
 ```
 
-Opcionalmente puedes usar otro dataset, por ejemplo `datos/med_dataset_v8.csv`:
+- Reentrenar con correcciones (Windows):
 
-```bash
-python scripts/train_model.py --dataset datos/med_dataset_v8.csv --overwrite
+```powershell
+retrain-from-correcciones.bat
 ```
 
-## Validación
+### Cuándo usar cada uno
 
-Para comprobar que los artefactos del modelo existen y que el endpoint de predicción responde correctamente, ejecuta:
+- `train-model.bat`: cuando quieras reentrenar desde el dataset base sin correcciones manuales.
+- `retrain-from-correcciones.bat`: cuando ya tengas `datos/correcciones.csv` y quieras incorporar ejemplos corregidos.
+
+- Parámetros útiles:
+  - `--decision-threshold FLOAT` (ej. `0.55`) — umbral para marcar predicciones como "safe".
+  - `--overwrite` — sobrescribir artefactos existentes.
+
+### Reentrenar con correcciones manuales
+
+Si quieres corregir errores del modelo con ejemplos nuevos, usa:
+
+```bash
+python scripts/retrain_from_correcciones.py --corrections datos/correcciones.csv --keep-merged --overwrite
+```
+
+- `datos/correcciones.csv` debe tener las columnas `text` y `emotion`.
+- La plantilla de referencia está en `datos/correcciones.csv.example`.
+- El script amplifica las correcciones, combina el dataset base y vuelve a ejecutar `train_model.py`.
+
+---
+
+## Artifacts (output)
+
+- `app/modelColab/modelo_v3.pkl` — modelo serializado (joblib)
+- `app/modelColab/encoder_med/` — encoder Sentence-Transformers
+- `app/modelColab/training_metrics.json` — métricas y metadatos (classification report, confusion matrix, training signature)
+
+Resumen rápido (último entrenamiento): **accuracy 0.9613**, **threshold 0.55**, **7021** test rows (safe: 6792, unsafe: 229).
+
+---
+
+## API — `/model/message`
+
+- Método: `POST`
+- Body (JSON):
+
+```json
+{ "message": "me siento muy cansado y sin ganas" }
+```
+
+- Respuesta (principal):
+
+```json
+{
+  "message": "...",
+  "prediction": "triste",
+  "confidence": 95.2,
+  "safe": true,
+  "threshold": 55.0,
+  "probabilities": { "enojo": 2.1, "feliz": 1.2, "miedo": 1.5, "triste": 95.2 }
+}
+```
+
+Campo `safe`: `confidence >= decision_threshold * 100` (el umbral se lee de `training_metrics.json`).
+
+---
+
+## Validate & quick checks
+
+- Ejecutar verificación mínima:
 
 ```bash
 python scripts/validate_project.py
 ```
 
-El script realiza una verificación mínima del flujo backend con mensajes de ejemplo.
+- Si el endpoint devuelve `503 Model artifacts missing` -> ejecutar entrenamiento o colocar `modelo_v3.pkl` y `encoder_med/` en `app/modelColab/`.
 
-## Ejecutar la API
+---
 
-Levantar el servidor con Uvicorn desde la raíz de `MachineLearning-Back`:
+## Troubleshooting
+
+- Puerto ocupado: cambiar puerto de Uvicorn:
 
 ```bash
-uvicorn app.main:app --reload
+uvicorn app.main:app --reload --port 8001
 ```
 
-La API quedará disponible en `http://127.0.0.1:8000`.
+- Activar entorno en PowerShell (Windows):
 
-Documentación automática:
-
-- Swagger: `http://127.0.0.1:8000/docs`
-- Redoc: `http://127.0.0.1:8000/redoc`
-
-## Endpoint de predicción
-
-### `POST /model/message`
-
-Recibe un JSON con el campo `message`.
-
-Ejemplo de cuerpo:
-
-```json
-{
-  "message": "me siento muy cansado y sin ganas"
-}
+```powershell
+(Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned) ; .venv\Scripts\Activate.ps1
 ```
 
-Ejemplo de respuesta:
+---
 
-```json
-{
-  "message": "me siento muy cansado y sin ganas",
-  "prediction": "triste"
-}
-```
+## Metrics & reports
 
-## Frontend
+- Detalle completo en: `app/modelColab/training_metrics.json` (contiene `classification_report` y `confusion_matrix`).
 
-El frontend consume el backend en `http://127.0.0.1:8000/model/message`.
-Si ejecutas ambos proyectos localmente, primero inicia el backend y luego abre el frontend.
+---
 
-## Notas
+## Classification report
 
-- La ruta del modelo se resuelve de forma absoluta dentro de `app/predict/router.py`.
-- La API permite CORS abierto para facilitar pruebas con el frontend.
-- Si entrenas de nuevo, se sobrescriben `modelo.pkl`, `vectorizer.pkl` y `training_metrics.json` solo cuando usas `--overwrite` o cambian los parámetros/signature del entrenamiento.
+Resumen del `classification_report` (test set):
+
+| Class       | Precision | Recall  | F1-score   | Support |
+|-------------|----------:|--------:|-----------:|--------:|
+| enojo       | 0.9536    | 0.9542  | 0.9539     | 1789    |
+| feliz       | 0.9708    | 0.9708  | 0.9708     | 1780    |
+| miedo       | 0.9777    | 0.9726  | 0.9752     | 1715    |
+| triste      | 0.9433    | 0.9476  | 0.9454     | 1737    |
+| **accuracy**|           |         | **0.9613** | 7021    |
+| macro avg   | 0.9614    | 0.9613  | 0.9613     | 7021    |
+| weighted avg| 0.9613    | 0.9613  | 0.9613     | 7021    |
+
+(Detalle completo y matriz de confusión en `app/modelColab/training_metrics.json`.)
+
+## Confusion matrix
+
+Matriz de confusión (filas = etiqueta real, columnas = etiqueta predicha):
+
+| Actual \ Predicted | enojo | feliz | miedo | triste |
+|-------------------:|------:|------:|------:|-------:|
+| enojo              | 1707  | 15    | 24    | 43     |
+| feliz              | 16    | 1728  | 4     | 32     |
+| miedo              | 21    | 2     | 1668  | 24     |
+| triste             | 46    | 35    | 10    | 1646   |
+
+(La matriz completa y los datos brutos están en `app/modelColab/training_metrics.json`.)
+---
