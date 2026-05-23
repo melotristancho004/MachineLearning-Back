@@ -21,6 +21,7 @@ class Message(BaseModel):
     Campos:
     - message: el texto bruto que se desea clasificar
     """
+
     message: str
 
 
@@ -28,12 +29,13 @@ class Message(BaseModel):
 BASE_DIR = Path(__file__).resolve().parent.parent
 MODEL_DIR = BASE_DIR / "modelColab"
 
-MODEL_PATH = MODEL_DIR / "modelo_v3.pkl"
-LEGACY_MODEL_PATH = MODEL_DIR / "modelo_v2.pkl"
+MODEL_PATH = MODEL_DIR / "modelo_v4.pkl"
+LEGACY_MODEL_PATH = MODEL_DIR / "modelo_v3.pkl"
 ENCODER_PATH = MODEL_DIR / "encoder_med"
 METRICS_PATH = MODEL_DIR / "training_metrics.json"
 
 metrics = {}
+
 
 def _load_metrics():
     m = {}
@@ -70,6 +72,7 @@ except Exception:
     encoder = None
     ARTIFACTS_LOADED = False
 
+
 @routerModel.post("/message")
 def message(data: Message):
     """Endpoint: recibe un JSON y devuelve una predicción.
@@ -82,7 +85,10 @@ def message(data: Message):
     # Si los artefactos no están cargados, devolvemos 503 para que el cliente
     # sepa que el servicio aún no está listo.
     if not ARTIFACTS_LOADED or model is None or encoder is None:
-        raise HTTPException(status_code=503, detail="Model artifacts missing. Run training to generate `modelo_v1.pkl` and `encoder_med/` in app/modelColab/.")
+        raise HTTPException(
+            status_code=503,
+            detail="Model artifacts missing. Run training to generate `modelo_v1.pkl` and `encoder_med/` in app/modelColab/. CUIADO, NO EXISTEN LOS ARCHIVOS QUE NECESITAS",
+        )
 
     # Generar embeddings y predecir la etiqueta
     vec = encoder.encode([message], show_progress_bar=False, convert_to_numpy=True)
@@ -90,7 +96,9 @@ def message(data: Message):
     probabilidades = model.predict_proba(vec)[0]
 
     # Crear diccionario con probabilidades por clase (en porcentaje)
-    probs_dict = {label: float(prob) * 100 for label, prob in zip(model.classes_, probabilidades)}
+    probs_dict = {
+        label: float(prob) * 100 for label, prob in zip(model.classes_, probabilidades)
+    }
     confianza = max(probs_dict.values()) if probs_dict else 0.0
     seguro = confianza >= (DECISION_THRESHOLD * 100)
 
